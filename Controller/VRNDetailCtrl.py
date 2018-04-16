@@ -1,8 +1,7 @@
-from flask import request
 from bson.json_util import dumps
 #from Controller import VRNHeaderCtrl
 
-class VRNDetialCtrl:
+class VRNDetailCtrl:
     
     def __init__(self, db):
         self.db = db;

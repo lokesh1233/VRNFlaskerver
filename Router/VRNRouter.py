@@ -1,6 +1,6 @@
 from flask import request
 from Controller.VRNHeaderCtrl import VRNHeaderCtrl 
-from Controller.VRNDetailCtrl import VRNDetialCtrl 
+from Controller.VRNDetailCtrl import VRNDetailCtrl 
 from Controller.VRNVehicleCtrl import VRNVehicleCtrl
 from Controller.VRNParamCtrl import VRNParamCtrl
 from Controller.VRNLicenseCtrl import VRNLicenseCtrl 
@@ -11,7 +11,7 @@ class VRNRouter:
         
         self.app = app
         self.db = db
-        VRNHeaderCtrl(db)
+        self.VRNHeader = VRNHeaderCtrl(db)
         self.loadAppRouterPath()
     
     def loadAppRouterPath(self):
@@ -21,27 +21,27 @@ class VRNRouter:
         @app.route('/VRNMaster',methods = ['POST', 'GET'])
         def VRNMasterList():
             if request.method == 'POST':
-                return VRNHeaderCtrl.createVRN(self, request.data)
+                return self.VRNHeader.createVRN(self, request.data)
             else:
-                return VRNHeaderCtrl.getVRNHeaderList(VRNHeaderCtrl)
+                return self.VRNHeader.getVRNHeaderList()
         
         #VRN master data    
         @app.route('/VRNCheckIN/<vrnId>',methods = ['PUT'])
         def VRNCheckIN(vrnId):
             if request.method == 'PUT':
-                return VRNHeaderCtrl.createVRNCheckIN(self, vrnId)
+                return self.VRNHeader.createVRNCheckIN(self, vrnId)
         
         #VRN master data    
         @app.route('/VRNCheckOUT',methods = ['POST'])
         def VRNCheckOUT(vrnId):
             if request.method == 'POST':
-                return VRNHeaderCtrl.createVRNCheckOUT(self, request.data)
+                return self.VRNHeader.createVRNCheckOUT(self, request.data)
             
         #VRN Detail Data
         @app.route('/VRNDetail/<vrnId>',methods = ['GET'])
         def VRNDetail(vrnId):
             if request.method == 'GET':
-                return VRNDetialCtrl.getVRNDetail(self, vrnId)
+                return VRNDetailCtrl.getVRNDetail(self, vrnId)
         
         #VRN Vehicle Data
         @app.route('/VRNVehicle/<vehicleId>',methods = ['GET'])
