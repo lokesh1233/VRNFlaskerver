@@ -23,7 +23,7 @@ class VRNRouter:
             if request.method == 'POST':
                 return VRNHeaderCtrl.createVRN(self, request.data)
             else:
-                return VRNHeaderCtrl.getVRNHeaderList(self)
+                return VRNHeaderCtrl.getVRNHeaderList(VRNHeaderCtrl)
         
         #VRN master data    
         @app.route('/VRNCheckIN/<vrnId>',methods = ['PUT'])
