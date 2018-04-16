@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from Router.VRNRouter import VRNRouter 
 from pymongo import MongoClient
 
@@ -8,6 +9,7 @@ client = MongoClient()
 db = client.VRN
 
 app = Flask(__name__)
+CORS(app)
 
 VRNRouter(app, db)
 
