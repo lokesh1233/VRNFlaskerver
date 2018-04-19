@@ -21,7 +21,7 @@ class VRNRouter:
         @app.route('/VRNMaster',methods = ['POST', 'GET'])
         def VRNMasterList():
             if request.method == 'POST':
-                return self.VRNHeader.createVRN(self, request.data)
+                return self.VRNHeader.createVRN(request.data)
             else:
                 return self.VRNHeader.getVRNHeaderList()
         
@@ -29,13 +29,13 @@ class VRNRouter:
         @app.route('/VRNCheckIN/<vrnId>',methods = ['PUT'])
         def VRNCheckIN(vrnId):
             if request.method == 'PUT':
-                return self.VRNHeader.createVRNCheckIN(self, vrnId)
+                return self.VRNHeader.createVRNCheckIN(vrnId)
         
         #VRN master data    
         @app.route('/VRNCheckOUT',methods = ['POST'])
-        def VRNCheckOUT(vrnId):
+        def VRNCheckOUT():
             if request.method == 'POST':
-                return self.VRNHeader.createVRNCheckOUT(self, request.data)
+                return self.VRNHeader.createVRNCheckOUT(request.data)
             
         #VRN Detail Data
         @app.route('/VRNDetail/<vrnId>',methods = ['GET'])

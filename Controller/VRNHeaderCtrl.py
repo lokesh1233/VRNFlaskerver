@@ -46,9 +46,11 @@ class VRNHeaderCtrl:
     
     # VRN checkin with vrn number
     def createVRNCheckIN(self, vrnId):
-        vrnCheckIN= self.db.VRNHeader.findOneAndUpdate({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, { "new": True, "upsert": True })
+        #vrnCheckIN= self.db.VRNHeader.findOneAndUpdate({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, { "new": True, "upsert": True })
+        vrnCheckIN= self.db.VRNHeader.update_one({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, True)
         if vrnCheckIN.acknowledged:
-            VRNCheckINDetail = self.db.VRNDetail.findOneAndUpdate({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, { "new": True, "upsert": True })
+            #VRNCheckINDetail = self.db.VRNDetail.findOneAndUpdate({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, { "new": True, "upsert": True })
+            VRNCheckINDetail = self.db.VRNDetail.update_one({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, True)
             if VRNCheckINDetail.acknowledged:
                 return dumps({ "message": 'VRN ' + vrnId + ' checked in succesfully ', "msgCode": "S"})
         return dumps({ "message": 'VRN ' + vrnId + ' is not checked in', "msgCode": "E"})
@@ -57,7 +59,8 @@ class VRNHeaderCtrl:
     # VRN checkout with request data
     def createVRNCheckOUT(self, data):
         checkOutStr = json.loads(data)
-        VRNHdr =  self.db.VRNHeader.findOneAndUpdate({ "VRN": checkOutStr["VRN"] }, { '$set': { "VRNSTATUS": "X" } }, { "new": True, "upsert": True })
+        #VRNHdr =  self.db.VRNHeader.findOneAndUpdate({ "VRN": checkOutStr["VRN"] }, { '$set': { "VRNSTATUS": "X" } }, { "new": True, "upsert": True })
+        VRNHdr =  self.db.VRNHeader.update_one({ "VRN": checkOutStr["VRN"] }, { '$set': { "VRNSTATUS": "X" } }, True)
         if VRNHdr.acknowledged:
             checkOutStr["VEHICLESECURITYDATE"] = str(datetime.now())
             checkOutStr["VEHICLECHECKINDATE"] = str(datetime.now())
@@ -65,8 +68,8 @@ class VRNHeaderCtrl:
             checkOutStr["CHECKINOUT"] = "O"
             vrnDtl = self.db.VRNDetail.insert_one(checkOutStr)
             if vrnDtl.acknowledged:
-                return dumps({"message": 'VRN ' + checkOutStr["VRN"] + ' checked out succesfully ', "msgCode": "S"})
-        return dumps({ "message": 'VRN ' + checkOutStr["VRN"] + ' is not checked out', "msgCode": "E" });
+                return dumps({"message": 'VRN ' + str(checkOutStr["VRN"]) + ' checked out succesfully ', "msgCode": "S"})
+        return dumps({ "message": 'VRN ' + str(checkOutStr["VRN"]) + ' is not checked out', "msgCode": "E" });
 
 
     # create a VRN 
