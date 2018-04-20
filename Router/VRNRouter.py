@@ -12,6 +12,10 @@ class VRNRouter:
         self.app = app
         self.db = db
         self.VRNHeader = VRNHeaderCtrl(db)
+        self.VRNDetail = VRNDetailCtrl(db)
+        self.VRNVehicle = VRNVehicleCtrl(db)
+        self.VRNParam = VRNParamCtrl()
+        self.VRNLicense = VRNLicenseCtrl()
         self.loadAppRouterPath()
     
     def loadAppRouterPath(self):
@@ -41,40 +45,40 @@ class VRNRouter:
         @app.route('/VRNDetail/<vrnId>',methods = ['GET'])
         def VRNDetail(vrnId):
             if request.method == 'GET':
-                return VRNDetailCtrl.getVRNDetail(self, vrnId)
+                return self.VRNDetail.getVRNDetail(vrnId)
         
         #VRN Vehicle Data
         @app.route('/VRNVehicle/<vehicleId>',methods = ['GET'])
         def findVRNVehicle(vehicleId):
             if request.method == 'GET':
-                return VRNVehicleCtrl.findVRNVehicle(self, vehicleId)
+                return self.VRNVehicle.findVRNVehicle(vehicleId)
         
         #VRN Param Data
         @app.route('/VRNParam/<domainId>',methods = ['GET'])
         def VRNParamData(domainId):
             if request.method == 'GET':
-                return VRNParamCtrl.getParamData(self, domainId)
+                return self.VRNParam.getParamData(domainId)
         
         #VRN LicenseRegion Data
         @app.route('/LicenseRegion',methods = ['GET'])
         def VRNLicenseRgn():
             if request.method == 'GET':
-                return VRNParamCtrl.licenseRegion(self)
+                return self.VRNParam.licenseRegion()
         
         #VRN Transporter Data
         @app.route('/VRNTransporters/<trnsporterId>',methods = ['GET'])
         def VRNTransporter(trnsporterId):
             if request.method == 'GET':
-                return VRNParamCtrl.getTransporters(self, trnsporterId)
+                return self.VRNParam.getTransporters(trnsporterId)
  
         #VRN Licence Data
         @app.route('/License/<licenseId>',methods = ['GET'])
         def VRNLicense(licenseId):
             if request.method == 'GET':
-                return VRNLicenseCtrl.getLicenseData(self, licenseId)
+                return self.VRNLicense.getLicenseData(licenseId)
         
         #VRN Licence Data
         @app.route('/License',methods = ['POST'])
         def createVRNLicense():
             if request.method == 'POST':
-                return VRNLicenseCtrl.createLicense(self, request.data)
+                return self.VRNLicense.createLicense(request.data)

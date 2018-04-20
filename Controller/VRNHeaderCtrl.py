@@ -84,9 +84,8 @@ class VRNHeaderCtrl:
 
 
     def getNextSequenceVlue(self, sequenceName):
-        return self.db.VRNCounter.findOneAndUpdate({ "col1": sequenceName },
-                                            { "$inc": { "seq": 1 } },
-                                            { "new": True, "upsert": True, "fields": {} })
+        #return self.db.VRNCounter.findOneAndUpdate({ "col1": sequenceName }, { "$inc": { "seq": 1 } },{ "new": True, "upsert": True, "fields": {} })
+        return self.db.VRNCounter.update_one({ "col1": sequenceName }, { "$inc": { "seq": 1 } },True)
 
 
 
@@ -109,9 +108,8 @@ class VRNHeaderCtrl:
         if new_vrn.acknowledged:
             dtl_vrn = self.db.VRNDetail.insert_one(dtlData)
             if dtl_vrn.acknowledged:
-                self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {
-                    '$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {
-                        "new": True, "upsert": True })
+                #self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {"new": True, "upsert": True })
+                self.db.Vehicle.update_one({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, True)
                 return dumps({ 'message': 'VRN: ' + seqval + ' created sccesfully', 'msgCode': "S" })
         return dumps({ 'message': 'VRN is not created', 'msgCode': "E"})
 
