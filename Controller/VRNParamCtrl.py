@@ -2,6 +2,9 @@ from bson.json_util import dumps
 import re
 class VRNParamCtrl:
     
+    def __init__(self, db):
+        self.db = db;
+    
     def licenseRegion(self):
         licenseRegion = self.db.LicenseRegion.find({})
         if licenseRegion.count() > 0: 
