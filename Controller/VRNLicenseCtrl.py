@@ -3,6 +3,9 @@ import json
 
 class VRNLicenseCtrl:
     
+    def __init__(self, db):
+        self.db = db;
+    
     def createLicense(self,data):
         licStr = json.loads(data)
         
