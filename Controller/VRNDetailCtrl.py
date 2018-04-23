@@ -6,9 +6,6 @@ class VRNDetailCtrl:
     def __init__(self, db):
         self.db = db;
     
-    def createVRN(self):
-        return 'create VRN successFully'
-    
     def getVRNDetail(self, vrnId):
         #VRNid request.
         vrnDat = {}
@@ -38,5 +35,5 @@ class VRNDetailCtrl:
                 return dumps(vrnRetData)
             return dumps(vrnRetData)
         else:
-            return 'No VRN number found'
+            return dumps({"msgCode":"E", "message":'No VRN number found'})
         

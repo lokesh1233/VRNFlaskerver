@@ -5,16 +5,14 @@ class VRNVehicleCtrl:
     def __init__(self, db):
         self.db = db;
     
-    def createVehicle(self):
-        return 'create VRN successFully'
-    
     def findVRNVehicle(self, vehicleid):
         vrnHeader = self.db.VRNHeader.find({ "VEHICLENUM": vehicleid, "$or": [{ "VRNSTATUS": 'R' }, { "VRNSTATUS": 'C' }] })
         if vrnHeader.count() >  0:
-            return "message: VRN  is open for vehicle number " + vehicleid;
+            for vrns in vrnHeader:
+                return dumps({ 'message': "VRN "+vrns['VRN']+" is open for vehicle number " + vehicleid, 'msgCode': "E"})
         vehicleDtl =  self.db.Vehicle.find({ "VehicleNumber": vehicleid })
         if vehicleDtl.count() == 0:
-            return vehicleid + " is not registered in vehicle master"
+            return dumps({ 'message': vehicleid + " is not registered in vehicle master", 'msgCode': "E"})
         vehicleRetData = []
         for vhcle in vehicleDtl:
             paramValue = self.db.Params.find({
@@ -30,4 +28,4 @@ class VRNVehicleCtrl:
                 return dumps(vehicleRetData)
             return dumps(vehicleDtl)
         else:
-            return vehicleid+'is not registered in vehicle master'
+            return dumps({ 'message': vehicleid+'is not registered in vehicle master', 'msgCode': "E"})
