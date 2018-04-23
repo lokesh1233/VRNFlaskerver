@@ -15,7 +15,7 @@ class VRNRouter:
         self.VRNDetail = VRNDetailCtrl(db)
         self.VRNVehicle = VRNVehicleCtrl(db)
         self.VRNParam = VRNParamCtrl(db)
-        self.VRNLicense = VRNLicenseCtrl()
+        self.VRNLicense = VRNLicenseCtrl(db)
         self.loadAppRouterPath()
     
     def loadAppRouterPath(self):

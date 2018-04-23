@@ -1,5 +1,6 @@
 #from flask import request
 from bson.json_util import dumps
+from pymongo import ReturnDocument
 import json
 from datetime import datetime
 #from Controller import VRNHeaderCtrl
@@ -41,7 +42,7 @@ class VRNHeaderCtrl:
                 return dumps(vrnRetData)
             return dumps(VRNList)
         else:
-            return 'No VRN found'
+            return dumps({ "message": 'No VRN found', "msgCode": "E"})
 
     
     # VRN checkin with vrn number
@@ -77,15 +78,15 @@ class VRNHeaderCtrl:
         crtVRNStr = json.loads(data)
         vhcle = crtVRNStr["VEHICLENUM"]
         if vhcle != '':
-            VRNHeaderCtrl.vehicleAvailable(self, vhcle, crtVRNStr)
+            return VRNHeaderCtrl.vehicleAvailable(self, vhcle, crtVRNStr)
         else:
-            VRNHeaderCtrl.create_new_vrn(self, crtVRNStr)
+            return VRNHeaderCtrl.create_new_vrn(self, crtVRNStr)
 
 
 
     def getNextSequenceVlue(self, sequenceName):
         #return self.db.VRNCounter.findOneAndUpdate({ "col1": sequenceName }, { "$inc": { "seq": 1 } },{ "new": True, "upsert": True, "fields": {} })
-        return self.db.VRNCounter.update_one({ "col1": sequenceName }, { "$inc": { "seq": 1 } },True)
+        return self.db.Counter.find_one_and_update({ "col1": sequenceName }, { "$inc": { "seq": 1 } }, return_document=ReturnDocument.AFTER)
 
 
 
@@ -94,14 +95,16 @@ class VRNHeaderCtrl:
     def vehicleAvailable(self, VEHICLENUM, data):
         vrnHdr = self.db.VRNHeader.find({ "VEHICLENUM": VEHICLENUM , "$or": [{ "VRNSTATUS": 'R' }, { "VRNSTATUS": 'C' }] })
         if vrnHdr.count() > 0:
-            return dumps({ "message" :"VRN " + vrnHdr + " is open for vehicle number " + VEHICLENUM });
-        VRNHeaderCtrl.create_new_vrn(self, data);
+            for vrns in vrnHdr:
+                return dumps({ "message" :"VRN " + str(vrns['VRN']) + " is open for vehicle number " + VEHICLENUM, 'msgCode': "E" });
+        return VRNHeaderCtrl.create_new_vrn(self, data);
 
 
     def create_new_vrn(self, data):
         seqNum = self.getNextSequenceVlue('VRNNum')
-        for seq_ls in seqNum:
-            seqval = seq_ls["seq"]
+#         for seq_ls in seqNum:
+#             seqval = seq_ls["seq"]
+        seqval = int(seqNum['seq'])
         hdrData =  VRNHeaderCtrl.createVRNHeaderData(self, data, seqval)
         dtlData =  VRNHeaderCtrl.createVRNDetailData(self, data, seqval)
         new_vrn = self.db.VRNHeader.insert_one(hdrData)
@@ -109,8 +112,8 @@ class VRNHeaderCtrl:
             dtl_vrn = self.db.VRNDetail.insert_one(dtlData)
             if dtl_vrn.acknowledged:
                 #self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {"new": True, "upsert": True })
-                self.db.Vehicle.update_one({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, True)
-                return dumps({ 'message': 'VRN: ' + seqval + ' created sccesfully', 'msgCode': "S" })
+                self.db.Vehicle.update_one({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, True)
+                return dumps({ 'message': 'VRN: ' + str(seqval) + ' created sccesfully', 'msgCode': "S" })
         return dumps({ 'message': 'VRN is not created', 'msgCode': "E"})
 
 
@@ -123,11 +126,11 @@ class VRNHeaderCtrl:
             "SEAL1": data["SEAL1"],
             "SEAL2": data["SEAL2"],
             "SEALCONDITION": data["SEALCONDITION"],
-            "VEHICLECHECKINDATE": datetime.now() if data["CHECKININD"] == 'X' else "",
+            "VEHICLECHECKINDATE": datetime.now() if data["VRNSTATUS"] == 'C' else "",
             "VEHICLESECURITYDATE": datetime.now(),
             "VEHICLESTATUS": data["VEHICLESTATUS"],
             "VRN": vrno,
-            "VRNCHECKINBY": 'Bhaskar' if data["CHECKININD"] == 'X' else ""
+            "VRNCHECKINBY": 'Bhaskar' if data["VRNSTATUS"] == 'C' else ""
         }
 
     #VRNHeader data structure
