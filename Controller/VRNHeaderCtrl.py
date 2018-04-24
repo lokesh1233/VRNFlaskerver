@@ -48,12 +48,12 @@ class VRNHeaderCtrl:
     # VRN checkin with vrn number
     def createVRNCheckIN(self, vrnId):
         #vrnCheckIN= self.db.VRNHeader.findOneAndUpdate({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, { "new": True, "upsert": True })
-        vrnCheckIN= self.db.VRNHeader.update_one({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, True)
-        if vrnCheckIN.acknowledged:
+        vrnCheckIN= self.db.VRNHeader.find_one_and_update({ "VRN": int(vrnId) }, { '$set': { "VRNSTATUS": "C" } }, return_document=ReturnDocument.AFTER)
+        if vrnCheckIN['VRNSTATUS'] == 'C':
             #VRNCheckINDetail = self.db.VRNDetail.findOneAndUpdate({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, { "new": True, "upsert": True })
-            VRNCheckINDetail = self.db.VRNDetail.update_one({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, True)
-            if VRNCheckINDetail.acknowledged:
-                return dumps({ "message": 'VRN ' + vrnId + ' checked in succesfully ', "msgCode": "S"})
+            VRNCheckINDetail = self.db.VRNDetail.find_one_and_update({ "VRN": str(vrnId) }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, return_document=ReturnDocument.AFTER)
+            if VRNCheckINDetail["VEHICLECHECKINDATE"] != '':
+                return dumps({ "message": 'VRN ' + vrnId + ' checked in successfully ', "msgCode": "S"})
         return dumps({ "message": 'VRN ' + vrnId + ' is not checked in', "msgCode": "E"})
 
     
@@ -61,15 +61,16 @@ class VRNHeaderCtrl:
     def createVRNCheckOUT(self, data):
         checkOutStr = json.loads(data)
         #VRNHdr =  self.db.VRNHeader.findOneAndUpdate({ "VRN": checkOutStr["VRN"] }, { '$set': { "VRNSTATUS": "X" } }, { "new": True, "upsert": True })
-        VRNHdr =  self.db.VRNHeader.update_one({ "VRN": checkOutStr["VRN"] }, { '$set': { "VRNSTATUS": "X" } }, True)
-        if VRNHdr.acknowledged:
+        VRNHdr =  self.db.VRNHeader.find_one_and_update({ "VRN": int(checkOutStr["VRN"]) }, { '$set': { "VRNSTATUS": "X" } }, return_document=ReturnDocument.AFTER)
+        if VRNHdr["VRNSTATUS"] == "X":
             checkOutStr["VEHICLESECURITYDATE"] = str(datetime.now())
             checkOutStr["VEHICLECHECKINDATE"] = str(datetime.now())
             checkOutStr["VRNCHECKINBY"] = "Bhaskar"
             checkOutStr["CHECKINOUT"] = "O"
+            checkOutStr["VRN"] = str(checkOutStr["VRN"])
             vrnDtl = self.db.VRNDetail.insert_one(checkOutStr)
             if vrnDtl.acknowledged:
-                return dumps({"message": 'VRN ' + str(checkOutStr["VRN"]) + ' checked out succesfully ', "msgCode": "S"})
+                return dumps({"message": 'VRN ' + str(checkOutStr["VRN"]) + ' checked out successfully ', "msgCode": "S"})
         return dumps({ "message": 'VRN ' + str(checkOutStr["VRN"]) + ' is not checked out', "msgCode": "E" });
 
 
@@ -87,10 +88,6 @@ class VRNHeaderCtrl:
     def getNextSequenceVlue(self, sequenceName):
         #return self.db.VRNCounter.findOneAndUpdate({ "col1": sequenceName }, { "$inc": { "seq": 1 } },{ "new": True, "upsert": True, "fields": {} })
         return self.db.Counter.find_one_and_update({ "col1": sequenceName }, { "$inc": { "seq": 1 } }, return_document=ReturnDocument.AFTER)
-
-
-
-
 
     def vehicleAvailable(self, VEHICLENUM, data):
         vrnHdr = self.db.VRNHeader.find({ "VEHICLENUM": VEHICLENUM , "$or": [{ "VRNSTATUS": 'R' }, { "VRNSTATUS": 'C' }] })
@@ -112,8 +109,8 @@ class VRNHeaderCtrl:
             dtl_vrn = self.db.VRNDetail.insert_one(dtlData)
             if dtl_vrn.acknowledged:
                 #self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {"new": True, "upsert": True })
-                self.db.Vehicle.update_one({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, True)
-                return dumps({ 'message': 'VRN: ' + str(seqval) + ' created sccesfully', 'msgCode': "S" })
+                self.db.Vehicle.find_one_and_update({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, return_document=ReturnDocument.AFTER)
+                return dumps({ 'message': 'VRN: ' + str(seqval) + ' created successfully', 'msgCode': "S" })
         return dumps({ 'message': 'VRN is not created', 'msgCode': "E"})
 
 
@@ -126,10 +123,10 @@ class VRNHeaderCtrl:
             "SEAL1": data["SEAL1"],
             "SEAL2": data["SEAL2"],
             "SEALCONDITION": data["SEALCONDITION"],
-            "VEHICLECHECKINDATE": datetime.now() if data["VRNSTATUS"] == 'C' else "",
-            "VEHICLESECURITYDATE": datetime.now(),
+            "VEHICLECHECKINDATE": str(datetime.now()) if data["VRNSTATUS"] == 'C' else "",
+            "VEHICLESECURITYDATE": str(datetime.now()),
             "VEHICLESTATUS": data["VEHICLESTATUS"],
-            "VRN": vrno,
+            "VRN": str(vrno),
             "VRNCHECKINBY": 'Bhaskar' if data["VRNSTATUS"] == 'C' else ""
         }
 
@@ -139,7 +136,7 @@ class VRNHeaderCtrl:
             "CHANGEDBY": "",
             "CHANGEDON": "",
             "CREATEDBY": "Bhaskar",
-            "CREATEDON": datetime.now(),
+            "CREATEDON": str(datetime.now()),
             "DRIVERNAME": data["DRIVERNAME"],
             "DRIVERNUM": data["DRIVERNUM"],
             "FLEETTYPE": data["FLEETTYPECODE"],
