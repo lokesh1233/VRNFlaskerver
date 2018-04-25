@@ -12,7 +12,7 @@ class VRNVehicleCtrl:
                 return dumps({ 'message': "VRN "+vrns['VRN']+" is open for vehicle number " + vehicleid, 'msgCode': "E"})
         vehicleDtl =  self.db.Vehicle.find({ "VehicleNumber": vehicleid })
         if vehicleDtl.count() == 0:
-            return dumps({ 'message': vehicleid + " is not registered in vehicle master", 'msgCode': "E"})
+            return dumps([])
         vehicleRetData = []
         for vhcle in vehicleDtl:
             paramValue = self.db.Params.find({
