@@ -28,4 +28,4 @@ class VRNVehicleCtrl:
                 return dumps(vehicleRetData)
             return dumps(vehicleDtl)
         else:
-            return dumps({ 'message': vehicleid+'is not registered in vehicle master', 'msgCode': "E"})
+            return dumps([])
