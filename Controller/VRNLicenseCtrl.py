@@ -29,4 +29,4 @@ class VRNLicenseCtrl:
         if licenseData.count() > 0: 
             return dumps(licenseData)
         else:
-            return dumps({"msgCode":"E", "message":'No data found'})
+            return dumps([])#{"msgCode":"E", "message":'No data found'}

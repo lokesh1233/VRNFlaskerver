@@ -29,3 +29,10 @@ class VRNParamCtrl:
             return dumps(trnsporterData)
         else:
             return dumps({ 'message': 'No data found', 'msgCode': "E"})
+    
+    def getAllTransporters(self):        
+        trnsporterData = self.db.Transporter.find({})
+        if trnsporterData.count() > 0:
+            return dumps(trnsporterData)
+        else:
+            return dumps({ 'message': 'No data found', 'msgCode': "E"})

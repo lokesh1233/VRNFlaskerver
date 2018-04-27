@@ -70,6 +70,11 @@ class VRNRouter:
         def VRNTransporter(trnsporterId):
             if request.method == 'GET':
                 return self.VRNParam.getTransporters(trnsporterId)
+        #VRN Transporter Data
+        @app.route('/VRNTransporters',methods = ['GET'])
+        def VRNAllTransporter():
+            if request.method == 'GET':
+                return self.VRNParam.getAllTransporters()
  
         #VRN Licence Data
         @app.route('/License/<licenseId>',methods = ['GET'])
