@@ -6,6 +6,7 @@ class VRNLicenseCtrl:
     
     def __init__(self, db):
         self.db = db;
+        self.updateToSapVRN = updateToSapVRN(db);
     
     def createLicense(self,data):
         licStr = json.loads(data)
@@ -22,7 +23,7 @@ class VRNLicenseCtrl:
         if licenseDta.acknowledged:
             returnMessage = {"msgCode":"S", "message": licStr["Licencenumber"] + ' license created'}
             #updating to sap
-            updateToSapVRN.createLicense(self, licStr)
+            self.updateToSapVRN.createLicense(licStr)
         else:
             returnMessage = {"msgCode":"E", "message":licStr["Licencenumber"] + ' license not created'}
         return dumps(returnMessage)
