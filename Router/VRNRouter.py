@@ -4,6 +4,7 @@ from Controller.VRNDetailCtrl import VRNDetailCtrl
 from Controller.VRNVehicleCtrl import VRNVehicleCtrl
 from Controller.VRNParamCtrl import VRNParamCtrl
 from Controller.VRNLicenseCtrl import VRNLicenseCtrl 
+from Controller.updateToSapVRN import updateToSapVRN
 
 class VRNRouter: 
     
@@ -16,6 +17,7 @@ class VRNRouter:
         self.VRNVehicle = VRNVehicleCtrl(db)
         self.VRNParam = VRNParamCtrl(db)
         self.VRNLicense = VRNLicenseCtrl(db)
+        updateToSapVRN(db)
         self.loadAppRouterPath()
     
     def loadAppRouterPath(self):
