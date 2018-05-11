@@ -1,4 +1,5 @@
 from bson.json_util import dumps
+from updateToSapVRN import updateToSapVRN
 import json
 
 class VRNLicenseCtrl:
@@ -20,6 +21,8 @@ class VRNLicenseCtrl:
         returnMessage = ''
         if licenseDta.acknowledged:
             returnMessage = {"msgCode":"S", "message": licStr["Licencenumber"] + ' license created'}
+            #updating to sap
+            updateToSapVRN.createLicense(self, licStr)
         else:
             returnMessage = {"msgCode":"E", "message":licStr["Licencenumber"] + ' license not created'}
         return dumps(returnMessage)
@@ -29,4 +32,4 @@ class VRNLicenseCtrl:
         if licenseData.count() > 0: 
             return dumps(licenseData)
         else:
-            return dumps([])#{"msgCode":"E", "message":'No data found'}
+            return dumps({"msgCode":"E", "message":'No data found'})
