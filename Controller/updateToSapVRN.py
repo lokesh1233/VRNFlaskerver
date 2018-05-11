@@ -16,7 +16,7 @@ class updateToSapVRN:
             "RegionCode": data["Rg"],
             "ValidUpToDate": data["Validto"][:-4] # need to check validto date senario what it is passing
             }
-        updateToSapVRN.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/LicenceCreateSet', LICDta)
+        updateToSapVRN.postSAPData(self, '/Z_FIORI_VRN_IN_LITE_SRV/LicenceCreateSet', LICDta)
     
     def createVRNCheckOut(self, data):
         checkOut = {
