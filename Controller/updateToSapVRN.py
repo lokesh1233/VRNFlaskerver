@@ -14,7 +14,7 @@ class updateToSapVRN:
             "LicenceNum": data["Licencenumber"],
             "MobileNum": data["Telephone"],
             "RegionCode": data["Rg"],
-            "ValidUpToDate": data["Validto"] # need to check validto date senario what it is passing
+            "ValidUpToDate": data["Validto"][:-4] # need to check validto date senario what it is passing
             }
         updateToSapVRN.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/LicenceCreateSet', LICDta)
     
