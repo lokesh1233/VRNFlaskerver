@@ -3,13 +3,14 @@ from bson.json_util import dumps
 from pymongo import ReturnDocument
 import json
 from datetime import datetime
+from Controller.updateToSapVRN import updateToSapVRN
 #from Controller import VRNHeaderCtrl
 
 class VRNHeaderCtrl:
     
     def __init__(self, db):
         self.db = db;
-
+        self.updateToSapVRN = updateToSapVRN(db);
 
     # List of VRNs with status R and C    
     def getVRNHeaderList(self):
@@ -52,10 +53,14 @@ class VRNHeaderCtrl:
         if vrnCheckIN['VRNSTATUS'] == 'C':
             #VRNCheckINDetail = self.db.VRNDetail.findOneAndUpdate({ "VRN": vrnId }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, { "new": True, "upsert": True })
             VRNCheckINDetail = self.db.VRNDetail.find_one_and_update({ "VRN": str(vrnId) }, { '$set': { "VEHICLECHECKINDATE": str(datetime.now()), "VRNCHECKINBY": 'Bhaskar'}  }, return_document=ReturnDocument.AFTER)
+            returnMessage = ''
             if VRNCheckINDetail["VEHICLECHECKINDATE"] != '':
-                return dumps({ "message": 'VRN ' + vrnId + ' checked in successfully ', "msgCode": "S"})
-        return dumps({ "message": 'VRN ' + vrnId + ' is not checked in', "msgCode": "E"})
-
+                returnMessage = dumps({ "message": 'VRN ' + vrnId + ' checked in successfully ', "msgCode": "S"})
+                #updating to sap
+                self.updateToSapVRN.createVRNCheckIn(vrnId)
+            else:
+                returnMessage = dumps({ "message": 'VRN ' + vrnId + ' is not checked in', "msgCode": "E"})
+            return returnMessage
     
     # VRN checkout with request data
     def createVRNCheckOUT(self, data):
@@ -69,9 +74,15 @@ class VRNHeaderCtrl:
             checkOutStr["CHECKINOUT"] = "O"
             checkOutStr["VRN"] = str(checkOutStr["VRN"])
             vrnDtl = self.db.VRNDetail.insert_one(checkOutStr)
+            returnMessage = ''
             if vrnDtl.acknowledged:
-                return dumps({"message": 'VRN ' + str(checkOutStr["VRN"]) + ' checked out successfully ', "msgCode": "S"})
-        return dumps({ "message": 'VRN ' + str(checkOutStr["VRN"]) + ' is not checked out', "msgCode": "E" });
+                returnMessage = dumps({"message": 'VRN ' + str(checkOutStr["VRN"]) + ' checked out successfully ', "msgCode": "S"})
+                #updating to sap
+                self.updateToSapVRN.createVRNCheckOut(checkOutStr)
+            else:
+                returnMessage = dumps({ "message": 'VRN ' + str(checkOutStr["VRN"]) + ' is not checked out', "msgCode": "E" });
+            return returnMessage
+        
 
 
     # create a VRN 
@@ -107,11 +118,21 @@ class VRNHeaderCtrl:
         new_vrn = self.db.VRNHeader.insert_one(hdrData)
         if new_vrn.acknowledged:
             dtl_vrn = self.db.VRNDetail.insert_one(dtlData)
+            returnMessage = ''
             if dtl_vrn.acknowledged:
                 #self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {"new": True, "upsert": True })
-                self.db.Vehicle.find_one_and_update({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, return_document=ReturnDocument.AFTER)
-                return dumps({ 'message': 'VRN: ' + str(seqval) + ' created successfully', 'msgCode': "S" })
-        return dumps({ 'message': 'VRN is not created', 'msgCode': "E"})
+                ind = 'X'
+                veh_vrn = self.db.Vehicle.find_one_and_update({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, return_document=ReturnDocument.AFTER)
+                if veh_vrn.acknowledged:                    
+                    ind = 'X'
+                else:
+                    ind = ''
+                returnMessage = dumps({ 'message': 'VRN: ' + str(seqval) + ' created successfully', 'msgCode': "S" })
+                #updating to sap
+                self.updateToSapVRN.createVRNReortAndCheckIn(data, ind)
+            else:
+                returnMessage = dumps({ 'message': 'VRN is not created', 'msgCode': "E"})
+            return returnMessage
 
 
     # VRN detail data structure
