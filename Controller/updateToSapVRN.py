@@ -1,15 +1,16 @@
 import requests
-hstURL = 'http://fiori_test3:Welcome.1@nwgwtgd.rjil.ril.com:8000/sap/opu/odata/sap'
+hstURL = 'http://fiori_test4:Welcome.1@nwgwtgd.rjil.ril.com:8000/sap/opu/odata/sap'
 class updateToSapVRN:
     def __init__(self, db):
         self.db = db;
     
     def postSAPData(self, url, pData):
         client = requests.session();
-        response = client.get(hstURL+'/Z_FIORI_VRN_IN_LITE_SRV', headers = {"x-csrf-token": "Fetch"})
+        response = client.get(hstURL+'/Z_FIORI_VRN_IN_LITE_SRV/?saml2=disabled', headers = {"x-csrf-token": "Fetch"})
         token = response.headers["x-csrf-token"]
         headers = {"X-CSRF-Token": token}
         r = client.post(hstURL+url, json = pData, headers = headers)
+        print(r.text)
         r.raise_for_status()
     
     def createLicense(self, data):
@@ -18,7 +19,7 @@ class updateToSapVRN:
             "LicenceNum": data["Licencenumber"],
             "MobileNum": data["Telephone"],
             "RegionCode": data["Rg"],
-            "ValidUpToDate": data["Validto"]#[:-4] # need to check validto date senario what it is passing
+            "ValidUpToDate": data["Validto"] + "T00:00:00"#[:-4] # need to check validto date senario what it is passing
             }
         self.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/LicenceCreateSet', LICDta)
     
@@ -39,41 +40,41 @@ class updateToSapVRN:
                 "VehicleStatus": data["VEHICLESTATUS"]
                 }]
                     }
-        updateToSapVRN.postSAPData('/Z_FIORI_VRN_OUT_LITE_SRV/VRNCreHdrSet', checkOut)
+        self.postSAPData('/Z_FIORI_VRN_OUT_LITE_SRV/VRNCreHdrSet', checkOut)
  
     def createVRNReortAndCheckIn(self, data, ind):
         report = {
-            "Indicator": 'X' if data.CHECKININD == 'X' else "" ,
+            "Indicator": 'X' if data["VRNSTATUS"] == 'C' else "" ,
             "VRNCREHRDVEHNAV": [{
-                "VehicleNum": data.VEHICLENUM if ind == 'X' else  '',
-                "VendorNum": data.TRANSPORTERCODE if ind == 'X' else '',
-                "FleetType": data.FLEETTYPECODE if ind == 'X' else  ''
+                "VehicleNum": data["VEHICLENUM"] if ind == 'X' else  '',
+                "VendorNum": data["TRANSPORTERCODE"] if ind == 'X' else '',
+                "FleetType": data["FLEETTYPECODE"] if ind == 'X' else  ''
                 }],
             "VRNHDRITEMNAV": [{
                 "CheckType": "I",
-                "Depremarks": data.REMARKS,
-                "Depseal": data.SEAL1,
-                "DriverName": data.DRIVERNAME,
-                "DriverNum": data.DRIVERNUM,
-                "FleetType": data.FLEETTYPECODE,
-                "IDPrfNum": data.IDPROOFNUM,
-                "IDPrfType": data.IDPROOFTYPE,
+                "Depremarks": data["REMARKS"],
+                "Depseal": data["SEAL1"],
+                "DriverName": data["DRIVERNAME"],
+                "DriverNum": data["DRIVERNUM"],
+                "FleetType": data["FLEETTYPECODE"],
+                "IDPrfNum": data["IDPROOFNUM"],
+                "IDPrfType": data["IDPROOFTYPE"],
                 "LRDate": "0000-00-00T00:00:00",
-                "LRNum": data.LRNUM,
-                "LicenceNum": data.LICENSENUM,
-                "NoHus": data.NUMOFBOXES,
+                "LRNum": data["LRNUM"],
+                "LicenceNum": data["LICENSENUM"],
+                "NoHus": data["NUMOFBOXES"],
                 "Purpose": "VEND_INB",
-                "SealCond": data.SEALCONDITION,
+                "SealCond": data["SEALCONDITION"],
                 "TCNNum": "",
-                "TransCode": data.TRANSPORTERCODE,
-                "Transporter": data.TRANSPORTER,
+                "TransCode": data["TRANSPORTERCODE"],
+                "Transporter": data["TRANSPORTER"],
                 "VRNITEMDOCNAV": [{ "DocType": "", "DocNo": "" }],
-                "VehStatus": data.VEHICLESTATUS,
-                "VehicleNum": data.VEHICLENUM,
-                "VehicleType": data.MODEOFTRANSPORT
+                "VehStatus": data["VEHICLESTATUS"],
+                "VehicleNum": data["VEHICLENUM"],
+                "VehicleType": data["MODEOFTRANSPORT"]
                 }]
                   }
-        updateToSapVRN.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/VRNCreateHdrSet', report);
+        self.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/VRNCreateHdrSet', report);
         
  
     def createVRNCheckIn(self, vrn):
@@ -81,4 +82,4 @@ class updateToSapVRN:
             "Indicator": "X",
             "VRNNum": str(vrn)
             }
-        updateToSapVRN.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/CheckInSet', CheckData);
+        self.postSAPData('/Z_FIORI_VRN_IN_LITE_SRV/CheckInSet', CheckData);
