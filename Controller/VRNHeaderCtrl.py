@@ -122,11 +122,15 @@ class VRNHeaderCtrl:
             if dtl_vrn.acknowledged:
                 #self.db.Vehicle.findOneAndUpdate({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': hdrData["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': ["TRANSPORTER"] } }, {"new": True, "upsert": True })
                 ind = 'X'
-                veh_vrn = self.db.Vehicle.find_one_and_update({ "VehicleNumber": hdrData["VEHICLENUM"] }, {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, return_document=ReturnDocument.AFTER)
-                if veh_vrn.acknowledged:                    
-                    ind = 'X'
-                else:
+                veh_vrn = self.db.Vehicle.find_one_and_update(
+                        { "VehicleNumber": hdrData["VEHICLENUM"] }, 
+                        {'$set': { 'FleetType': data["FLEETTYPECODE"], 'Vendor': hdrData["TRANSPORTERCODE"], 'VendorName': hdrData["TRANSPORTER"] } }, 
+                        upsert=True,
+                        return_document=ReturnDocument.BEFORE)
+                if veh_vrn:
                     ind = ''
+                else:
+                    ind = 'X'
                 returnMessage = dumps({ 'message': 'VRN: ' + str(seqval) + ' created successfully', 'msgCode': "S" })
                 #updating to sap
                 self.updateToSapVRN.createVRNReortAndCheckIn(data, ind)
